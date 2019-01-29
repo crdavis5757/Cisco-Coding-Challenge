@@ -96,7 +96,7 @@ public class TestGraphUtils {
 	@Test
 	public void walkGraphMultiple1() {
 		String[] expectedNodeNames = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" };
-		GNodeImpl anchor = buildSampleGraph(true);
+		GNodeImpl anchor = buildSampleGraph(false);
 
 		Set<GNode> nodes = GraphUtils.collectNodesInGraph(anchor);
 		assertNotNull(nodes);
@@ -118,6 +118,30 @@ public class TestGraphUtils {
 		List<String> collectedNodeNames = nodes.stream().map(GNode::getName).collect(Collectors.toList());
 		Collections.sort(collectedNodeNames);
 		assertArrayEquals(expectedNodeNames, collectedNodeNames.toArray());
+	}
+
+	@Test
+	public void walkGraphMultiple3() {
+		String[] expectedNodeNames = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "x", "y", "z" };
+		GNodeImpl nodeA = buildSampleGraph(false);
+		GNodeImpl anchor = new GNodeBuilder("x")
+				.withChild("y").endChild()
+				.withChild("z").endChild()
+				.build();
+		GNodeImpl nodeX = (GNodeImpl) anchor.getChildren()[0];
+		GNodeImpl nodeY = (GNodeImpl) anchor.getChildren()[1];
+		GNode nodeB = nodeA.getChildren()[0];
+		nodeX.addChild(nodeA);
+		nodeY.addChild(nodeB);
+		anchor.display();
+
+		Set<GNode> nodes = GraphUtils.collectNodesInGraph(anchor);
+		assertNotNull(nodes);
+		assertTrue(nodes.size() == expectedNodeNames.length);
+		Set<String> collectedNodeNames = nodes.stream().map(GNode::getName).collect(Collectors.toSet());
+		for (String name : expectedNodeNames) {
+			assertTrue(collectedNodeNames.contains(name));
+		}
 	}
 
 	@Test
@@ -167,6 +191,40 @@ public class TestGraphUtils {
 			List<String> actualPath = paths.get(i).stream().map(GNode::getName).collect(Collectors.toList());
 			assertEquals(expectedPath, actualPath);
 		}
+	}
+
+	@Test
+	public void pathTest3() {
+		String[][] expectedPaths = {
+				{ "x", "y", "a", "b", "e" },
+				{ "x", "y", "a", "b", "f" },
+				{ "x", "y", "a", "c", "g" },
+				{ "x", "y", "a", "c", "h" },
+				{ "x", "y", "a", "c", "i" },
+				{ "x", "y", "a", "d", "j" },
+				{ "x", "z", "b", "e" },
+				{ "x", "z", "b", "f" }
+		};
+		GNodeImpl nodeA = buildSampleGraph(false);
+		GNodeImpl anchor = new GNodeBuilder("x")
+				.withChild("y").endChild()
+				.withChild("z").endChild()
+				.build();
+		GNodeImpl nodeX = (GNodeImpl) anchor.getChildren()[0];
+		GNodeImpl nodeY = (GNodeImpl) anchor.getChildren()[1];
+		GNode nodeB = nodeA.getChildren()[0];
+		nodeX.addChild(nodeA);
+		nodeY.addChild(nodeB);
+
+		List<List<GNode>> paths = GraphUtils.findAllPaths(anchor);
+		assertNotNull(paths);
+		assertTrue(paths.size() == expectedPaths.length);
+		for (int i = 0; i < paths.size(); i++) {
+			List<String> expectedPath = Arrays.asList(expectedPaths[i]);
+			List<String> actualPath = paths.get(i).stream().map(GNode::getName).collect(Collectors.toList());
+			assertEquals(expectedPath, actualPath);
+		}
+
 	}
 	
 }

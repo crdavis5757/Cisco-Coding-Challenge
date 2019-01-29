@@ -5,7 +5,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 /**
@@ -34,25 +33,28 @@ public class GraphUtils {
 	 * @return the set of nodes in the graph, possibly empty.
 	 */
 	public static Set<GNode> collectNodesInGraph(GNode anchorNode) {
-		
-		Set<GNode> allNodes = new HashSet<>();
+
+		Set<GNode> visitedNodes = new HashSet<>();
 		if (anchorNode == null)
-			return allNodes;	// Null graph, return empty set
-		
-		List<GNode> nodesToConsider = new ArrayList<>();
-		nodesToConsider.add(anchorNode);
+			return visitedNodes;	// Null graph, return empty set
 
-		while (!nodesToConsider.isEmpty()) {
-			ListIterator<GNode> it = nodesToConsider.listIterator();
-			GNode nextNode = it.next();
-			it.remove();
-			allNodes.add(nextNode);
-			for (GNode child : nextNode.getChildren()) {
-				it.add(child);
-			}
+		collectNodesVisitor(visitedNodes, anchorNode);
+		return visitedNodes;
+	}
+
+	/**
+	 * Recursive visitor to collect nodes in the graph.
+	 * @param visitedNodes the set of nodes visited so far
+	 * @param node the new node to visit
+	 */
+	private static void collectNodesVisitor(Set<GNode> visitedNodes, GNode node) {
+		if (visitedNodes.contains(node))
+			return;	// already visited this node and its descendents
+
+		visitedNodes.add(node);
+		for (GNode child : node.getChildren()) {
+			collectNodesVisitor(visitedNodes, child);
 		}
-
-		return allNodes;
 	}
 
 	/**
